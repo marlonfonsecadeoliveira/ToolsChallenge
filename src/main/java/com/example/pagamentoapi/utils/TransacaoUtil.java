@@ -24,7 +24,7 @@ public class TransacaoUtil {
      * @return NSU gerado como uma string.
      */
     public String gerarNsu() {
-        long nsu = NSU_BASE + (long) (random.nextDouble() * (NSU_BASE * 9));
+        long nsu = NSU_BASE + (random.nextLong() * (NSU_BASE * 9));
         return String.valueOf(nsu);
     }
 

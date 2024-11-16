@@ -27,7 +27,7 @@ public class Transacao {
     private String codigoAutorizacao;
 
     @Enumerated(EnumType.STRING)
-    private Status Status;
+    private Status status;
 
     @Enumerated(EnumType.STRING)
     private FormaPagamento formaPagamento;
