@@ -1,16 +1,16 @@
 package com.example.pagamentoapi.service;
 
 import com.example.pagamentoapi.dto.PagamentoDTO;
+import com.example.pagamentoapi.dto.TransacaoResponseDTO;
 import com.example.pagamentoapi.model.Transacao;
 import com.example.pagamentoapi.repository.TransacaoRepository;
+import com.example.pagamentoapi.utils.TransacaoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -19,6 +19,9 @@ public class TransacaoService {
     @Autowired
     private TransacaoRepository repository;
 
+    @Autowired
+    private TransacaoUtil transacaoUtil;
+
     public Transacao realizarPagamento(PagamentoDTO pagamentoDTO) {
         Transacao transacao = new Transacao();
         transacao.setCartao(pagamentoDTO.getTransacao().getCartao());
@@ -26,8 +29,8 @@ public class TransacaoService {
         transacao.setValor(pagamentoDTO.getTransacao().getDescricao().getValor());
         transacao.setDataHora(LocalDateTime.now());
         transacao.setEstabelecimento(pagamentoDTO.getTransacao().getDescricao().getEstabelecimento());
-        transacao.setNsu(gerarNsu());
-        transacao.setCodigoAutorizacao(gerarAutorizacao());
+        transacao.setNsu(transacaoUtil.gerarNsu());
+        transacao.setCodigoAutorizacao(transacaoUtil.gerarAutorizacao());
         transacao.setFormaPagamento(Transacao.FormaPagamento.valueOf(pagamentoDTO.getTransacao().getFormaPagamento().getTipo()));
         transacao.setStatus(Transacao.Status.AUTORIZADO);
         transacao.setParcelas(pagamentoDTO.getTransacao().getFormaPagamento().getParcelas());
@@ -35,6 +38,7 @@ public class TransacaoService {
 
         return repository.save(transacao);
     }
+
 
     public Optional<Transacao> buscarTransacao(String id) {
         UUID uuid = UUID.fromString(id);
@@ -46,25 +50,40 @@ public class TransacaoService {
     }
 
     public Optional<Transacao> estornarPagamento(String id) {
-        UUID uuid = UUID.fromString(id);
-        Optional<Transacao> transacaoOpt = repository.findById(uuid);
-        transacaoOpt.ifPresent(transacao -> transacao.setStatus(Transacao.Status.CANCELADO));
-        return transacaoOpt;
+        return repository.findById(UUID.fromString(id)).map(transacao -> {
+            transacao.setStatus(Transacao.Status.CANCELADO);
+            return repository.save(transacao); // Salva e retorna a transação
+        });
     }
 
-    private String gerarNsu() {
-        Random random = new Random();
-        long nsu = 1000000000L + (long)(random.nextDouble() * 9000000000L); // Gera um número de 10 dígitos
-        return String.valueOf(nsu);
-    }
-    private String gerarAutorizacao() {
-        Random random = new Random();
-        int nsu = 100000000 + random.nextInt(900000000); // Gera um número de 9 dígitos
-        return String.valueOf(nsu);
+
+    public TransacaoResponseDTO mapToResponseDTO(Transacao transacao) {
+        TransacaoResponseDTO responseDTO = new TransacaoResponseDTO();
+        TransacaoResponseDTO.TransacaoDTO transacaoDTO = new TransacaoResponseDTO.TransacaoDTO();
+
+        transacaoDTO.setCartao(transacao.getCartao());
+        transacaoDTO.setId(String.valueOf(transacao.getId()));
+
+        TransacaoResponseDTO.TransacaoDTO.DescricaoDTO descricao = new TransacaoResponseDTO.TransacaoDTO.DescricaoDTO();
+        descricao.setValor(transacao.getValor());
+        descricao.setDataHora(transacaoUtil.convertData(transacao)); // Ajuste se necessário para o formato correto
+        descricao.setEstabelecimento(transacao.getEstabelecimento());
+        descricao.setNsu(transacao.getNsu());
+        descricao.setCodigoAutorizacao(transacao.getCodigoAutorizacao());
+        descricao.setStatus(transacao.getStatus());
+        transacaoDTO.setDescricao(descricao);
+
+        TransacaoResponseDTO.TransacaoDTO.FormaPagamentoDTO formaPagamento = new TransacaoResponseDTO.TransacaoDTO.FormaPagamentoDTO();
+        formaPagamento.setTipo(transacao.getFormaPagamento().name());
+        formaPagamento.setParcelas(transacao.getParcelas());
+        transacaoDTO.setFormaPagamento(formaPagamento);
+
+        responseDTO.setTransacao(transacaoDTO);
+        return responseDTO;
     }
 
-    public String convertData(Transacao transacao) {
-        return transacao.getDataHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
-    }
+
+
+
 
 }

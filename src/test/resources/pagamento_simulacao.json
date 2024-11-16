@@ -1,0 +1,15 @@
+{
+  "transacao": {
+    "cartao": "4444********1234",
+    "descricao": {
+      "valor": 1600.5,
+      "dataHora": "14/11/2024 20:13:21",
+      "estabelecimento":"PetShop Mundo cão"
+
+    },
+    "formaPagamento": {
+      "tipo": "AVISTA",
+      "parcelas": 1
+    }
+  }
+}
