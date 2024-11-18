@@ -1,7 +1,20 @@
 # ToolsChallenge
 Tools Java Challenge [C] 
 
+Objetivo e entendimento do Projeto
+ Implementar uma API de Pagamentos. 
+As operações serão as seguintes: 
+- Pagamento: - Solicitação e resposta conforme JSON abaixo
+- Estorno: - consulta: por ID - retorno: conforme JSON de retorno de estorno
+- Consulta: - consulta: todos e por ID - retorno: conforme JSON de retorno do pagamento
+
+
+
 Instruções para testes
+Via JUnit
+Class TransacaoControllerTest
+
+
 via postman
 POST
 cria o pagamento
